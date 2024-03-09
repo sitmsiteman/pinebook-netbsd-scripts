@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# NetBSD shell script for control backlight on pinebook 1080p
+
+BACKLIGHT_LEVELS="$(sysctl hw.pwmbacklight0.levels)"
+CURRENT_LEVEL=$(sysctl hw.pwmbacklight0.level | cut -f3 -d' ')
+
+if [ "$1" = "up" ];
+then
+	NEXT_LEVEL=$(echo $BACKLIGHT_LEVELS | awk -v level=$CURRENT_LEVEL '{for(i=3;i<split($0,array," ")-1;i++){if(array[i]==level){print array[i+1]}}}')
+	if [ ! $NEXT_LEVEL ];
+	then
+		NEXT_LEVEL=100	
+	fi
+else
+	NEXT_LEVEL=$(echo $BACKLIGHT_LEVELS | awk -v level=$CURRENT_LEVEL '{for(i=4;i<split($0,array," ");i++){if(array[i]==level){print array[i-1]}}}')
+	if [ ! $NEXT_LEVEL ];
+	then
+		NEXT_LEVEL=0
+	fi
+fi
+
+sysctl -w hw.pwmbacklight0.level=$NEXT_LEVEL
